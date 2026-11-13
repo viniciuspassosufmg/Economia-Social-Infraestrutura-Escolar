@@ -20,7 +20,7 @@ Rscript scripts/03_calculo.R
 
 1. **Download.** Obtém os insumos oficiais em `dados/brutos/`. Para reutilizar cópias locais, coloque os CSVs de cada edição em `dados/brutos/<ano>/`, com os nomes da configuração. Se preferir fornecer os ZIPs, coloque-os nessa mesma pasta com o nome do arquivo no link oficial. O JSON populacional fica em `dados/brutos/populacao_censo_2022.json`.
 2. **Tratamento.** Valida campos e chaves, junta os CSVs de escolas e matrículas em 2025, aplica os filtros e prepara um RDS por ano em `dados/tratados/`.
-3. **Cálculo.** Lê os RDS e grava `infraestrutura_municipal_consolidada.csv` diretamente na pasta em que o comando é executado.
+3. **Cálculo.** Lê os RDS e grava `infraestrutura_municipal_consolidada.csv` diretamente na pasta em que o comando é executado. O CSV é gerado localmente e fica fora do versionamento.
 
 O teste local usou R 4.5.1, readr 2.1.5, dplyr 1.1.4, tidyr 1.3.1, tibble 3.3.0 e jsonlite 2.0.0. No Windows, com os CSVs já disponíveis, as três etapas levaram cerca de 2, 27 e 45 segundos, respectivamente. Os CSVs brutos ocupam cerca de 1,5 GB, além do espaço para ZIPs e intermediários.
 

@@ -2,6 +2,7 @@
 !/dados/brutos/.gitkeep
 /dados/tratados/*
 !/dados/tratados/.gitkeep
+/infraestrutura_municipal_consolidada.csv
 .Rhistory
 .RData
 .Rproj.user/
