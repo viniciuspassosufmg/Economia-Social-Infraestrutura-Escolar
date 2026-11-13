@@ -1,0 +1,10 @@
+/dados/brutos/*
+!/dados/brutos/.gitkeep
+/dados/tratados/*
+!/dados/tratados/.gitkeep
+.Rhistory
+.RData
+.Rproj.user/
+.Renviron
+__pycache__/
+*.tmp
