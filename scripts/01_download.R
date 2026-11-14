@@ -34,6 +34,26 @@ baixar <- function(url, destino, fonte) {
   stop(fonte, " — ", url, ": falha no download após três tentativas (", resultado, ").", call. = FALSE)
 }
 
+extrair_csv <- function(zip, membro, destino, tamanho) {
+  parcial <- tempfile(tmpdir = dirname(destino))
+  on.exit(unlink(parcial))
+  # Lemos o membro pelo caminho original e escolhemos o nome do CSV na saída.
+  # Assim o R não precisa converter o nome da pasta interna do ZIP.
+  local({
+    entrada <- unz(zip, membro, open = "rb")
+    on.exit(close(entrada), add = TRUE)
+    saida <- file(parcial, open = "wb")
+    on.exit(close(saida), add = TRUE)
+    repeat {
+      bloco <- readBin(entrada, "raw", n = 1024L * 1024L)
+      if (!length(bloco)) break
+      writeBin(bloco, saida)
+    }
+  })
+  if (!isTRUE(file.size(parcial) == tamanho) || !file.rename(parcial, destino))
+    stop("falha ao extrair ", basename(destino))
+}
+
 obter_ano <- function(entrada) {
   ano <- entrada$ano
   pasta <- caminho_bruto(ano, "")
@@ -48,18 +68,19 @@ obter_ano <- function(entrada) {
   fonte <- paste("Censo Escolar", ano)
   baixar(entrada$url, zip, fonte)
   tryCatch({
-    membros <- unzip(zip, list = TRUE)$Name
-    # Extrai somente os arquivos necessários, independentemente da pasta no ZIP.
+    indice <- unzip(zip, list = TRUE)
+    # Alguns ZIPs do Inep contêm anexos com nomes em uma codificação antiga.
+    # Os CSVs configurados têm nomes ASCII. Separamos os nomes dos caminhos por
+    # bytes e mantemos o caminho original para extrair o CSV, mesmo que a pasta
+    # interna tenha acentos em outra codificação.
+    nomes_no_zip <- sub("^.*/", "", indice$Name, useBytes = TRUE)
+    nomes_ascii <- grepl("^[ -~]+$", nomes_no_zip, useBytes = TRUE)
+    indice <- indice[nomes_ascii, ]
+    nomes_no_zip <- tolower(nomes_no_zip[nomes_ascii])
     for (nome in faltantes) {
-      membro <- membros[tolower(basename(membros)) == tolower(nome)]
-      if (length(membro) != 1L) stop("esperado um arquivo ", nome, " no ZIP.")
-      temporaria <- tempfile()
-      dir.create(temporaria)
-      extraido <- unzip(zip, files = membro, exdir = temporaria, junkpaths = TRUE)
-      if (length(extraido) != 1L || !file.copy(extraido, file.path(pasta, nome)))
-        stop("falha ao extrair ", nome)
-      unlink(extraido)
-      unlink(temporaria)
+      linha <- which(nomes_no_zip == tolower(nome))
+      if (length(linha) != 1L) stop("esperado um arquivo ", nome, " no ZIP.")
+      extrair_csv(zip, indice$Name[linha], file.path(pasta, nome), indice$Length[linha])
     }
   }, error = function(e) stop(fonte, " — ", entrada$url, ": ", conditionMessage(e), call. = FALSE))
 }
