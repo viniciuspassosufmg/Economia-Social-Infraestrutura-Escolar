@@ -1,5 +1,10 @@
-# Obtém os insumos oficiais. CSVs já presentes na pasta do ano têm prioridade.
-# Localiza a configuração ao executar com Rscript ou com Source no RStudio.
+# 01 | Download dos insumos
+# Lê a lista de edições em configuracao.R e deixa os CSVs do Inep e o JSON
+# de população prontos em dados/brutos/ para a etapa de tratamento.
+
+# Localiza a configuração ao lado deste script. O RStudio informa o caminho
+# por source(). No terminal, o caminho vem do argumento --file. Os caminhos relativos
+# cobrem a execução a partir da raiz do projeto ou da pasta scripts/.
 arquivos <- c(
   unlist(lapply(rev(sys.frames()), function(quadro) quadro$ofile)),
   sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
@@ -11,8 +16,12 @@ if (is.na(configuracao))
   stop("Não foi possível localizar scripts/configuracao.R a partir de ", getwd(),
     ". Abra o script na pasta extraída e use Source, ou execute com Rscript.", call. = FALSE)
 source(configuracao, encoding = "UTF-8", chdir = TRUE)
+# O limite maior de espera atende aos arquivos mais pesados do Inep.
 options(timeout = max(900, getOption("timeout")))
 
+# Reutiliza o arquivo local. Em uma nova transferência, grava provisoriamente
+# na pasta de destino e só adota o nome definitivo após o sucesso do download.
+# Uma nova execução pode assim retomar a série usando os arquivos completos.
 baixar <- function(url, destino, fonte) {
   if (file.exists(destino)) return(invisible(destino))
   parcial <- tempfile(tmpdir = dirname(destino))
@@ -34,6 +43,9 @@ baixar <- function(url, destino, fonte) {
   stop(fonte, " — ", url, ": falha no download após três tentativas (", resultado, ").", call. = FALSE)
 }
 
+# Extrai apenas o CSV solicitado. A leitura em blocos evita carregar o arquivo
+# inteiro em memória. O tamanho declarado no ZIP é conferido antes de publicar
+# o CSV no caminho que será lido pelo tratamento.
 extrair_csv <- function(zip, membro, destino, tamanho) {
   parcial <- tempfile(tmpdir = dirname(destino))
   on.exit(unlink(parcial))
@@ -58,6 +70,8 @@ obter_ano <- function(entrada) {
   ano <- entrada$ano
   pasta <- caminho_bruto(ano, "")
   dir.create(pasta, recursive = TRUE, showWarnings = FALSE)
+  # A edição pode ter matrículas no CSV escolar ou em uma tabela separada.
+  # Se faltar algum CSV, aproveitamos o ZIP local ou baixamos o ZIP oficial.
   nomes <- na.omit(c(entrada$escolas, entrada$matriculas))
   faltantes <- nomes[!file.exists(file.path(pasta, nomes))]
   if (!length(faltantes)) {
@@ -78,6 +92,7 @@ obter_ano <- function(entrada) {
     indice <- indice[nomes_ascii, ]
     nomes_no_zip <- tolower(nomes_no_zip[nomes_ascii])
     for (nome in faltantes) {
+      # Um nome duplicado impediria identificar com segurança qual CSV usar.
       linha <- which(nomes_no_zip == tolower(nome))
       if (length(linha) != 1L) stop("esperado um arquivo ", nome, " no ZIP.")
       extrair_csv(zip, indice$Name[linha], file.path(pasta, nome), indice$Length[linha])
@@ -85,6 +100,8 @@ obter_ano <- function(entrada) {
   }, error = function(e) stop(fonte, " — ", entrada$url, ": ", conditionMessage(e), call. = FALSE))
 }
 
+# A série do Inep varia por ano. O JSON do SIDRA é baixado uma vez porque o
+# porte municipal usa a mesma população de referência, de 2022, em toda a série.
 for (i in seq_len(nrow(entradas))) obter_ano(entradas[i, ])
 baixar(url_populacao, arquivo_populacao, "População municipal do Censo 2022")
 message("Insumos disponíveis em ", pasta_brutos, ".")
