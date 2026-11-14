@@ -42,10 +42,6 @@ Para atualizar a série, consulte os dicionários da edição nova e acrescente 
 - Os sete itens são esgoto, internet para aprendizagem, biblioteca ou sala de leitura, quadra, banheiro acessível, cozinha e refeitório. As carências de pelo menos 1 a 7 itens são contadas por escola antes da agregação. Os percentuais são cumulativos. A plataforma recebe as coberturas como insumo para a nota do I²E²F.
 - `NA` indica valor indisponível. Uma escola com matrícula desconhecida fica fora da ponderação. Um item indeterminado em escola com peso positivo deixa indisponível a medida correspondente. Zero indica contagem ou percentual calculado igual a zero.
 
-## Licença e validação externa
-
-O CSV foi comparado com a planilha anual da v11. As 467.892 linhas e os 25 cabeçalhos conferem, incluindo a ordem das chaves, os zeros, os `NA` e os percentuais com tolerância absoluta de `1e-10`.
+## Licença
 
 O código do grupo segue a licença [MIT](LICENSE). Os microdados e a população são publicados pelo Inep e pelo IBGE, respectivamente. Para reutilizar o CSV derivado, preserve a atribuição das fontes e consulte as condições de uso aplicáveis aos dados originais.
-
-Antes de abrir o repositório ao público ou arquivar uma versão com DOI, uma pessoa de fora do grupo deve executar os três scripts em outro computador e conferir os resultados.
