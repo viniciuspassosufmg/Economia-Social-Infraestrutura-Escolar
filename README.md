@@ -10,13 +10,15 @@ Instale o R e, em uma sessão do R, instale os pacotes:
 install.packages(c("readr", "dplyr", "tidyr", "tibble", "jsonlite"))
 ```
 
-Abra um terminal na raiz da cópia local do repositório e execute em ordem:
+Se você baixou o ZIP do GitHub, extraia a pasta inteira. Abra um terminal na raiz da cópia local do repositório e execute em ordem:
 
 ```sh
 Rscript scripts/01_download.R
 Rscript scripts/02_tratamento.R
 Rscript scripts/03_calculo.R
 ```
+
+No RStudio, abra os três arquivos da pasta `scripts/` e use o botão **Source** em cada um, na mesma ordem. Os scripts encontram a configuração e a pasta `dados/` na própria cópia do projeto. O CSV final sai no diretório de trabalho do R, que você pode consultar com `getwd()`. Para gravá-lo na raiz do projeto, defina essa pasta em **Session → Set Working Directory → Choose Directory…** antes de executar o cálculo.
 
 1. **Download.** Obtém os insumos oficiais em `dados/brutos/`. Para reutilizar cópias locais, coloque os CSVs de cada edição em `dados/brutos/<ano>/`, com os nomes da configuração. Se preferir fornecer os ZIPs, coloque-os nessa mesma pasta com o nome do arquivo no link oficial. O JSON populacional fica em `dados/brutos/populacao_censo_2022.json`.
 2. **Tratamento.** Valida campos e chaves, junta os CSVs de escolas e matrículas em 2025, aplica os filtros e prepara um RDS por ano em `dados/tratados/`.

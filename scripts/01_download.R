@@ -1,5 +1,16 @@
 # Obtém os insumos oficiais. CSVs já presentes na pasta do ano têm prioridade.
-source("scripts/configuracao.R", encoding = "UTF-8")
+# Localiza a configuração ao executar com Rscript ou com Source no RStudio.
+arquivos <- c(
+  unlist(lapply(rev(sys.frames()), function(quadro) quadro$ofile)),
+  sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+)
+candidatos <- c(file.path(dirname(arquivos), "configuracao.R"),
+  "scripts/configuracao.R", "configuracao.R")
+configuracao <- candidatos[file.exists(candidatos)][1L]
+if (is.na(configuracao))
+  stop("Não foi possível localizar scripts/configuracao.R a partir de ", getwd(),
+    ". Abra o script na pasta extraída e use Source, ou execute com Rscript.", call. = FALSE)
+source(configuracao, encoding = "UTF-8", chdir = TRUE)
 options(timeout = max(900, getOption("timeout")))
 
 baixar <- function(url, destino, fonte) {
@@ -55,4 +66,4 @@ obter_ano <- function(entrada) {
 
 for (i in seq_len(nrow(entradas))) obter_ano(entradas[i, ])
 baixar(url_populacao, arquivo_populacao, "População municipal do Censo 2022")
-message("Insumos disponíveis em dados/brutos.")
+message("Insumos disponíveis em ", pasta_brutos, ".")

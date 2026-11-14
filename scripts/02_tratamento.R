@@ -2,7 +2,18 @@
 if (.Platform$OS.type == "windows" && Sys.getlocale("LC_CTYPE") == "C")
   invisible(Sys.setlocale("LC_CTYPE", "Portuguese_Brazil.utf8"))
 suppressPackageStartupMessages(library(dplyr))
-source("scripts/configuracao.R", encoding = "UTF-8")
+# Localiza a configuração ao executar com Rscript ou com Source no RStudio.
+arquivos <- c(
+  unlist(lapply(rev(sys.frames()), function(quadro) quadro$ofile)),
+  sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+)
+candidatos <- c(file.path(dirname(arquivos), "configuracao.R"),
+  "scripts/configuracao.R", "configuracao.R")
+configuracao <- candidatos[file.exists(candidatos)][1L]
+if (is.na(configuracao))
+  stop("Não foi possível localizar scripts/configuracao.R a partir de ", getwd(),
+    ". Abra o script na pasta extraída e use Source, ou execute com Rscript.", call. = FALSE)
+source(configuracao, encoding = "UTF-8", chdir = TRUE)
 
 ler_censo <- function(arquivo, ano, campos) {
   if (!file.exists(arquivo)) stop("Censo ", ano, ": arquivo ausente: ", arquivo)
@@ -114,7 +125,7 @@ preparar_ano <- function(dados, ano, populacao, origem) {
   list(cadastro = cadastro, escolas = escolas)
 }
 
-dir.create("dados/tratados", recursive = TRUE, showWarnings = FALSE)
+dir.create(pasta_tratados, recursive = TRUE, showWarnings = FALSE)
 populacao <- ler_populacao(arquivo_populacao)
 for (i in seq_len(nrow(entradas))) {
   entrada <- entradas[i, ]

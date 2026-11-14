@@ -1,4 +1,3 @@
-# Execute os comandos a partir da raiz do projeto.
 # Acrescente uma linha por nova edição e confira o dicionário do Inep.
 # Use NA em matriculas quando o CSV escolar já contém as matrículas.
 entradas <- tibble::tribble(
@@ -19,12 +18,18 @@ entradas <- tibble::tribble(
     "https://download.inep.gov.br/dados_abertos/microdados_censo_escolar_2025_.zip"
 )
 url_populacao <- "https://apisidra.ibge.gov.br/values/t/4714/n6/all/v/93/p/2022"
-arquivo_populacao <- "dados/brutos/populacao_censo_2022.json"
+# Os scripts carregam esta configuração com chdir = TRUE. Nesse momento,
+# a pasta atual é scripts/. Em seguida, o R volta à pasta de execução.
+raiz_projeto <- dirname(normalizePath(".", winslash = "/", mustWork = TRUE))
+pasta_brutos <- file.path(raiz_projeto, "dados", "brutos")
+pasta_tratados <- file.path(raiz_projeto, "dados", "tratados")
+arquivo_populacao <- file.path(pasta_brutos, "populacao_censo_2022.json")
+# O CSV final é gravado no diretório de trabalho de quem executa o cálculo.
 arquivo_saida <- "infraestrutura_municipal_consolidada.csv"
 
 # Os arquivos de cada ano ficam juntos em dados/brutos/<ano>.
-caminho_bruto <- function(ano, nome) file.path("dados", "brutos", ano, nome)
-caminho_tratado <- function(ano) file.path("dados", "tratados", paste0("escolas_", ano, ".rds"))
+caminho_bruto <- function(ano, nome) file.path(pasta_brutos, ano, nome)
+caminho_tratado <- function(ano) file.path(pasta_tratados, paste0("escolas_", ano, ".rds"))
 
 # Ordem de exportação. M = municipal, E = estadual, F = federal e T = total público.
 redes <- c("M", "E", "F", "T")
